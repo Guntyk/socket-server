@@ -21,6 +21,8 @@ const io = new Server(server, {
 let messages = {};
 
 io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
   socket.on('join', ({ name, room }) => {
     socket.join(room);
 
@@ -65,8 +67,18 @@ io.on('connection', (socket) => {
     }
   });
 
-  io.on('disconnect', () => {
-    console.log('Disconnect');
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+
+    const user = removeUser({ id: socket.id });
+    if (user) {
+      const { room, name } = user;
+      const leftMessage = { user: { name: 'Admin' }, message: `${name} has left` };
+
+      messages[room].push(leftMessage);
+      io.to(room).emit('message', { data: leftMessage });
+      io.to(room).emit('roomUsersAction', { data: { users: getRoomUsers(room) } });
+    }
   });
 });
 
