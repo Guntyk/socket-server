@@ -51,6 +51,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('leftRoom', ({ params }) => {
+    if (!params || !params.name || !params.room) return;
+
     const user = removeUser(params);
 
     if (user) {
